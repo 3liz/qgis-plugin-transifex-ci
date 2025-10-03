@@ -1,0 +1,4 @@
+[tool.qgis-transifex-ci]
+plugin_source = "plugin_ci_testing"
+organization = "3liz"
+project = "qgis_plugin_ci_testing"

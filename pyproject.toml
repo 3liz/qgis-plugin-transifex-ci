@@ -1,0 +1,159 @@
+[build-system]
+requires = ["uv_build>=0.8.19,<0.9.0"]
+build-backend = "uv_build"
+
+[project]
+name = "qgis-plugin-transifex-ci"
+version = "0.1.0a1"
+authors = [
+    {name = "Denis Rouzaud", email = "denis@opengis.ch"},
+    {name = "Etienne Trimaille", email = "etienne.trimaille@gmail.com"},
+    {name = "Julien Moura", email = "dev@ingeoveritas.com"},
+    {name = "David Marteau", email = "david.marteau@3liz.com"},
+]
+description = "Handle transifex for  QGIS plugins "
+requires-python = ">=3.12"
+keywords = ["QGIS", "CI", "transifex", "plugin"]
+license = {text = "GPLv3"}
+classifiers = [
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: System Administrators",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Information Technology",
+        "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Topic :: Scientific/Engineering :: GIS",
+]
+dependencies = [
+    "click",
+    "pydantic",
+    "six",      # Required by transifex
+    "transifex-python>=3.2,<4.0",
+]
+
+[project.scripts]
+qgis-transifex-ci = "qgis_plugin_transifex_ci.main:main"
+
+[project.urls]
+homepage = "https://github.com/3liz/qgis-plugin-transifex-ci"
+documentation = "https://github.com/3liz/qgis-plugin-transifex-ci"
+repository = "https://github.com/3liz/qgis-plugin-transifex-ci"
+tracker = "https://github.com/3liz/qgis-plugin-transifex-ci"
+
+
+[project.optional-dependencies]
+
+[dependency-groups]
+dev = [
+    "coverage[toml]",
+    {include-group = "tests"},
+    {include-group = "lint" },
+]
+tests = [
+    "pytest",
+]
+lint = [
+    "ruff",
+    "mypy",
+    "bandit",
+    "types-requests",
+]
+
+[tool.uv.build-backend]
+module-name = ["qgis_plugin_transifex_ci"]
+module-root = ""
+
+#
+# Ruff
+#
+# https://doc.astral.sh/ruff/configuration
+#
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+exclude = [
+    ".venv",
+    ".local",
+    "tests/fixtures",
+]
+
+[tool.ruff.format]
+indent-style = "space"
+
+[tool.ruff.lint]
+extend-select = ["E", "F", "I", "ANN", "W", "T", "COM", "RUF"]
+# COM812 conflict with formatter
+ignore = [
+    "ANN002",
+    "ANN003",
+    "ANN204",
+    "ANN401",
+    "T201",
+    "COM812",
+    # TODO: Temporary ignore linter errors until
+    # they are fixed
+    "E20",     # Whitespace before/after element
+    "E402",    # E402 Module level import not at top of file
+    "E501",    # Line too long
+    "ANN001",  # Missing type annotation for function argument
+    "ANN201",  # Missing return type annotation for public function
+    "ANN205",  # Missing return type annotation for staticmethod
+    "ANN206",  # Missing return type annotation for classmethod
+    "RUF012",  # Mutable class attributes should be annotated
+    "RUF013",  # PEP 484 prohibits implicit `Optional`
+]
+allowed-confusables = ["’"]  # Used in parsing methods
+
+[tool.ruff.lint.per-file-ignores]
+"test/*" = [
+    "ANN201",
+]
+
+[tool.ruff.lint.isort]
+lines-between-types = 1
+known-third-party = [
+    "qgis",
+]
+order-by-type = true
+
+[tool.ruff.lint.flake8-annotations]
+ignore-fully-untyped = true
+suppress-none-returning = true
+suppress-dummy-args = true
+
+#
+# Mypy
+#
+[tool.mypy]
+python_version = "3.12"
+exclude = [
+    "^tests/fixtures/*$",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "qgis.*",
+    "transifex.*",
+]
+ignore_missing_imports = true
+
+
+#
+# Coverage
+#
+[tool.coverage.run]
+source = ["qgis_plugin_transifex_ci"]
+branch = true
+relative_files = true
+
+[tool.coverage.report]
+precision = 2
+exclude_lines = [
+    "if TYPE_CHECKING",
+    '\(Protocol\):$',
+]
