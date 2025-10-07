@@ -75,8 +75,23 @@ class Project:
     def resources(self) -> Iterator[Resource]:
         return (Resource(res) for res in self._proj.fetch("resources").all())
 
-    def languages(self) -> Iterator[str]:
-        return (lang.code for lang in self._proj.fetch("languages").all())
+    def languages(self) -> Iterator[tx.Language]:
+        return self._proj.fetch("languages").all()
+
+    def language_stats(self, resource: str) -> Iterator[tuple[str, int, float]]:
+        """Return the language statistics based on the number of translated strings"""
+        try:
+            res = self._proj.fetch("resources").get(slug=resource)
+        except DoesNotExist:
+            return
+
+        for st in tx_api.ResourceLanguageStats.filter(project=self._proj, resource=res):
+            _ , _, code = st.id.partition(":l:")
+            if st.total_strings > 0:
+                ratio = 100.0 * (st.translated_strings / st.total_strings)
+            else:
+                ratio = 0.
+            yield (code, st.total_strings, ratio)
 
     def add_languages(self, *languages: str):
         self._proj.add(

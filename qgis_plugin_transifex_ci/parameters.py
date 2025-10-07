@@ -81,6 +81,17 @@ class Parameters(BaseModel, extra="forbid"):
         A list of selected languages to pick from availables languages
         """,
     )
+    minimum_translation: Optional[float] = Field(
+        default=None,
+        title="Minimum translation",
+        description="""
+        Minimum translation ratio required for a language.
+        If the translation ratio is below that value, the langage
+        be discarded.
+        """,
+        ge=0.0,
+        le=100.0,
+    )
 
     @cached_property
     def plugin_path(self) -> Path:

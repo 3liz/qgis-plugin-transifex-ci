@@ -93,7 +93,8 @@ def make_compile():
     envvar="QGIS_TRANSIFEX_CI_TOKEN",
     required=True,
 )
-def list_languages(transifex_token: str):
+@click.option("--json", "json_format", is_flag=True, help="Output as json")
+def list_languages(transifex_token: str, json_format: bool):
     """List availables translation"""
     from .client import Client
     from .parameters import load_parameters
@@ -103,9 +104,28 @@ def list_languages(transifex_token: str):
     if not project:
         raise TranslationError(f"Project {parameters.project} not found")
 
-    languages = list(project.languages())
-    click.echo(f"Found {len(languages)} languages:")
-    click.echo(" ".join(project.languages()))
+    stats = {code: (strings, ratio) for (code, strings, ratio) in project.language_stats(parameters.resource)}
+    languages = sorted(
+        ((lang, stats[lang.code]) for lang in project.languages()),
+        key=lambda n: n[1][1],
+        reverse=True,
+    )
+    if json_format:
+        import json
+        click.echo(
+            json.dumps(
+                [{
+                    "code": lang.code,
+                    "name": lang.name,
+                    "strings": stat[0],
+                    "ratio": stat[1],
+                } for lang, stat in languages],
+                indent=4,
+            ),
+        )
+    else:
+        for i, (lang, stat) in enumerate(languages):
+            click.echo(f"{i + 1:>3}. {lang.code:<10} {lang.name:<25} {stat[0]:<8} {stat[1]:.2f}")
 
 
 def main():

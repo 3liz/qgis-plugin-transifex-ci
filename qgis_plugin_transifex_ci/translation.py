@@ -30,6 +30,7 @@ class Translation:
 
         self._plugin_path = parameters.plugin_path
         self._projectname = parameters.project
+        self._minimum_tr = parameters.minimum_translation
 
         self._ts_name = resource_name
         self._ts_path = self.translation_file_path(parameters)
@@ -53,15 +54,21 @@ class Translation:
         if not resource:
             raise TranslationError(f"Resource {self._ts_name} does not exists")
 
-        languages = set(self._project.languages())
+        languages = set(lang.code for lang in self._project.languages())
         logger.info("%s languages found for '%s'", len(languages), resource)
+
+        if selected_languages:
+            languages.intersection_update(selected_languages)
+
+        if self._minimum_tr is not None:
+            # Retrieve language statistics
+            stats = ((code, ratio) for (code, _, ratio) in self._project.language_stats(self._ts_name))
+            candidates = set(code for code, ratio in stats if code in languages and ratio >= self._minimum_tr)
+            languages = candidates
 
         # Ensure that the directory exists
         i18n_dir = self._plugin_path.joinpath("i18n")
         i18n_dir.mkdir(parents=True, exist_ok=True)
-
-        if selected_languages:
-            languages.intersection_update(selected_languages)
 
         for lang in sorted(languages):
             ts_file = i18n_dir.joinpath(f"{self._ts_name}_{lang}.ts")
