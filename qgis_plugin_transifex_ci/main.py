@@ -45,7 +45,7 @@ def make_push(transifex_token: str, dry_run: bool):
     from .parameters import load_parameters
 
     parameters = load_parameters()
-    t = Translation(parameters, transifex_token)
+    t = Translation(parameters, transifex_token, create_project=True)
     t.update_strings(parameters)
     if not dry_run:
         t.push()

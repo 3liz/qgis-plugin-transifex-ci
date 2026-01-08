@@ -22,6 +22,7 @@ class Translation:
         self,
         parameters: Parameters,
         tx_api_token: str,
+        create_project: bool = False,
     ):
         # Get the translation source file
 
@@ -38,11 +39,17 @@ class Translation:
         self._client = Client(parameters.organization, tx_api_token)
 
         project = self._client.project(parameters.project)
-        if not project:
+        if not project and create_project:
             project = self._client.create_project(
                 parameters.project,
                 resource_lang,
+                repository_url=str(parameters.repository_url),
             )
+            if not project:
+                raise TranslationError(f"Failed to create project '{parameters.project}'")
+
+        if not project:
+            raise TranslationError(f"Failed to get project '{parameters.project}'")
 
         self._project = project
 
@@ -106,16 +113,33 @@ class Translation:
         cmd = [str(parameters.pylupdate5_executable), "-noobsolete", str(project_file)]
 
         logger.debug("Running command %s", cmd)
-        subprocess.run(cmd, check=True, text=True)
+        rv = subprocess.run(cmd, text=True, capture_output=True)
+        if rv.returncode != 0:
+            raise TranslationError(
+                f"pylupdate5 command failed with return code {rv.returncode}\n"
+                f"{rv.stdout}"
+                f"{rv.stderr}"
+            )
 
     @classmethod
     def compile_strings(cls, parameters: Parameters):
         """
         Compile TS file into QM files
         """
+        ts_files = tuple(str(p) for p in parameters.plugin_path.glob("i18n/*.ts"))
+        if not ts_files:
+            raise TranslationError(f"No TS files found in {parameters.plugin_path.joinpath('i18n')}")
+
         cmd = [
             str(parameters.lrelease_executable),
-            *(str(p) for p in parameters.plugin_path.glob("i18n/*.ts")),
+            *ts_files,
         ]
+
         logger.debug("Running command %s", cmd)
-        subprocess.run(cmd, check=True, text=True)
+        rv = subprocess.run(cmd, text=True, capture_output=True)
+        if rv.returncode != 0:
+            raise TranslationError(
+                f"lrelease command failed with return code {rv.returncode}\n"
+                f"{rv.stdout}"
+                f"{rv.stderr}"
+            )

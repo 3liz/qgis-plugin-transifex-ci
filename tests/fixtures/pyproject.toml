@@ -1,4 +1,5 @@
 [tool.qgis-transifex-ci]
 plugin_source = "plugin_ci_testing"
-organization = "3liz"
+organization = "3liz-1"
 project = "qgis_plugin_ci_testing"
+repository_url = "https://github.com/3liz/qgis-plugin-transifex-ci"

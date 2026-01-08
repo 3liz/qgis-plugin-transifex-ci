@@ -11,6 +11,8 @@ import transifex.api as tx
 from transifex.api import transifex_api as tx_api
 from transifex.api.jsonapi.exceptions import DoesNotExist
 
+from .errors import TranslationError
+
 
 class Resource:
     def __init__(self, res: tx.Resource):
@@ -66,8 +68,8 @@ class Project:
         return Resource(
             tx_api.Resource.create(
                 project=self._proj,
-                name=str,
-                slug=str,
+                name=name,
+                slug=name,
                 i18n_format=tx_api.I18nFormat(id="QT"),
             ),
         )
@@ -103,7 +105,10 @@ class Project:
 class Client:
     def __init__(self, org: str, token: str):
         tx_api.setup(auth=token)
-        self._org = tx_api.Organization.get(slug=org)
+        try:
+            self._org = tx_api.Organization.get(slug=org)
+        except DoesNotExist:
+            raise TranslationError(f"The organization '{org}' is no registered")
 
     def project(self, name: str) -> Optional[Project]:
         try:
@@ -118,7 +123,7 @@ class Client:
         *,
         private: bool = False,
         repository_url: Optional[str] = None,
-    ):
+    ) -> Project:
         kwargs = {
             "name": name,
             "slug": name,
@@ -129,3 +134,7 @@ class Client:
 
         if repository_url:
             kwargs["repository_url"] = repository_url
+        elif not private:
+            raise TranslationError("A repository url is required for public projects")
+
+        return Project(tx_api.Project.create(**kwargs))
