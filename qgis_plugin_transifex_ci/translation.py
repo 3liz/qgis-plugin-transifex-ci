@@ -83,9 +83,10 @@ class Translation:
             resource.download(lang, ts_file)
 
     def push(self):
-        resource = self._project.create_resource(self._ts_name)
-
         logger.info(f"Pushing resource: {self._ts_name} from '{self._ts_path}'")
+        resource = self._project.resource(self._ts_name)
+        if not resource:
+            resource = self._project.create_resource(self._ts_name)
         resource.update(self._ts_path)
 
     @classmethod

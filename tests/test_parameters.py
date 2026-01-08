@@ -18,11 +18,11 @@ def test_find_config_file(fixtures: Path):
 
 def test_read_config(fixtures: Path):
     config = read_config_from_file(fixtures.joinpath(".qgis-transifex-ci.toml"))
-    assert config.get("organization") == "3liz"
+    assert config.get("organization") == "3liz-1"
 
 
 def test_load_parameters(fixtures: Path):
     parameters = load_parameters(fixtures)
     assert parameters.plugin_path.parent == fixtures
     assert parameters.lrelease_executable.exists()
-    assert parameters.organization == "3liz"
+    assert parameters.organization == "3liz-1"

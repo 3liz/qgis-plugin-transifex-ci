@@ -1,4 +1,4 @@
 [qgis-transifex-ci]
 plugin_path = "plugin_ci_testing"
-organization = "3liz"
+organization = "3liz-1"
 project = "qgis-plugin-package-ci"
