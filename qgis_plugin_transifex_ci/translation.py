@@ -122,6 +122,8 @@ class Translation:
                 f"{rv.stderr}"
             )
 
+        logger.info("Created translation file: %s", ts_path)
+
     @classmethod
     def compile_strings(cls, parameters: Parameters):
         """
