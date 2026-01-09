@@ -102,13 +102,13 @@ class Translation:
         ts_path = cls.translation_file_path(parameters)
 
         with project_file.open("w") as fh:
-            py_sources = " ".join(str(p.relative_to(plugin_path)) for p in sources_py)
-            ui_sources = " ".join(str(p.relative_to(plugin_path)) for p in sources_ui)
+            py_sources = " ".join(str(p) for p in sources_py)
+            ui_sources = " ".join(str(p) for p in sources_ui)
             fh.write("CODECFORTR = UTF-8\n")
             fh.write(f"SOURCES = {py_sources}\n")
             fh.write(f"FORMS = {ui_sources}\n")
             fh.write(
-                f"TRANSLATIONS = {ts_path.relative_to(plugin_path)}\n"
+                f"TRANSLATIONS = {ts_path}\n"
             )
 
         cmd = [str(parameters.pylupdate5_executable), "-noobsolete", str(project_file)]
@@ -122,7 +122,7 @@ class Translation:
                 f"{rv.stderr}"
             )
 
-        logger.info("Created translation file: %s", ts_path)
+        logger.info("Created translation file: %s\n%s", ts_path, rv.stdout)
 
     @classmethod
     def compile_strings(cls, parameters: Parameters):

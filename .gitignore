@@ -28,3 +28,5 @@ junit
 coverage.xml
 
 .localconfig.mk
+*.pro
+*.ts
