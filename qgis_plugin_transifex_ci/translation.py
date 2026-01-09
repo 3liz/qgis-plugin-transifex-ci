@@ -104,6 +104,8 @@ class Translation:
         project_file = parameters.plugin_path.joinpath(f"{parameters.project}.pro")
 
         ts_path = cls.translation_file_path(parameters)
+        # Ensure the i18n directory exists
+        ts_path.parent.mkdir(parents=True, exist_ok=True)
 
         with project_file.open("w") as fh:
             py_sources = " ".join(str(p) for p in sources_py)
@@ -131,10 +133,12 @@ class Translation:
                 f"{rv.stderr}"
             )
 
+        logger.info("%s\n%s", rv.stdout, rv.stderr)
+
         if not ts_path.exists():
             raise TranslationError(f"Could not create {ts_path}")
 
-        logger.info("Created translation file: %s\n%s\n%s", ts_path, rv.stdout, rv.stderr)
+        logger.info("Created translation file: %s", ts_path)
 
     @classmethod
     def compile_strings(cls, parameters: Parameters):
