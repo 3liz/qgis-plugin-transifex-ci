@@ -84,6 +84,10 @@ class Translation:
 
     def push(self):
         logger.info(f"Pushing resource: {self._ts_name} from '{self._ts_path}'")
+
+        if not self._ts_path.exists():
+            raise TranslationError(f"The file {self._ts_path} does not exists")
+
         resource = self._project.resource(self._ts_name)
         if not resource:
             resource = self._project.create_resource(self._ts_name)
@@ -111,7 +115,12 @@ class Translation:
                 f"TRANSLATIONS = {ts_path}\n"
             )
 
-        cmd = [str(parameters.pylupdate5_executable), "-noobsolete", str(project_file)]
+        cmd = [
+            str(parameters.pylupdate5_executable),
+            "-noobsolete",
+            "-verbose",
+            str(project_file),
+        ]
 
         logger.debug("Running command %s", cmd)
         rv = subprocess.run(cmd, text=True, capture_output=True)
@@ -122,7 +131,10 @@ class Translation:
                 f"{rv.stderr}"
             )
 
-        logger.info("Created translation file: %s\n%s", ts_path, rv.stdout)
+        if not ts_path.exists():
+            raise TranslationError(f"Could not create {ts_path}")
+
+        logger.info("Created translation file: %s\n%s\n%s", ts_path, rv.stdout, rv.stderr)
 
     @classmethod
     def compile_strings(cls, parameters: Parameters):
